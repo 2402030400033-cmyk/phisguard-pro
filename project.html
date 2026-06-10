@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard Pro | Phishing Detector</title>
+    <style>
+        :root {
+            --bg: #09101f;
+            --card: #111827;
+            --surface: #1f2937;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --safe: #22c55e;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(148, 163, 184, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 32%),
+                        linear-gradient(180deg, #050816 0%, #0b1224 100%);
+            color: var(--text);
+        }
+
+        .page {
+            width: min(1100px, calc(100% - 24px));
+            margin: 0 auto;
+            padding: 32px 0 48px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        header h1 {
+            margin-bottom: 12px;
+            font-size: clamp(2rem, 4vw, 3.1rem);
+            color: var(--accent);
+        }
+
+        header p {
+            margin: 0 auto;
+            max-width: 760px;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 28px;
+            box-shadow: 0 25px 55px rgba(0, 0, 0, 0.18);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.4rem;
+            color: var(--text);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 14px;
+            margin: 22px 0 16px;
+        }
+
+        .input-row input {
+            width: 100%;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 16px 18px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .input-row button {
+            border: none;
+            border-radius: 14px;
+            background: var(--accent);
+            color: #0b1120;
+            padding: 0 24px;
+            font-weight: 700;
+            cursor: pointer;
+            min-width: 136px;
+            transition: transform 0.18s ease, filter 0.18s ease;
+        }
+
+        .input-row button:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+        .result-card {
+            display: none;
+            margin-top: 16px;
+            border-radius: 18px;
+            padding: 22px;
+            border: 1px solid transparent;
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        .result-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .result-info strong {
+            font-size: 1.15rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-info small {
+            color: var(--muted);
+        }
+
+        .result-points {
+            margin-top: 18px;
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .result-points li {
+            margin-bottom: 12px;
+            line-height: 1.65;
+            position: relative;
+            padding-left: 16px;
+        }
+
+        .result-points li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .status-safe { border-color: #22c55e; }
+        .status-warning { border-color: #f59e0b; }
+        .status-danger { border-color: #ef4444; }
+
+        .note {
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            margin-top: 28px;
+        }
+
+        .detail-grid article {
+            padding: 22px;
+            border-radius: 18px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid var(--border);
+        }
+
+        .detail-grid article h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
+
+        .detail-grid article p,
+        .detail-grid article ul {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.75;
+        }
+
+        .detail-grid article ul {
+            padding-left: 18px;
+            margin: 10px 0 0;
+        }
+
+        .detail-grid article li {
+            margin-bottom: 10px;
+        }
+
+        footer {
+            margin-top: 36px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: 1fr; }
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 540px) {
+            .page { padding: 24px 0 32px; }
+            .input-row { grid-template-columns: 1fr; }
+            .input-row button { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>PhishGuard Pro</h1>
+            <p>Detect risky links instantly with a browser-based phishing analyzer and learn the most common signals that reveal fake websites.</p>
+        </header>
+
+        <section class="hero">
+            <div class="card">
+                <h2>Live URL Risk Scanner</h2>
+                <p class="note">Paste any web address here to evaluate its structure, keywords, domain patterns, and other phishing signals.</p>
+
+                <div class="input-row">
+                    <input id="urlInputField" type="text" placeholder="Paste URL here, e.g. https://example-bank-login.xyz" aria-label="URL input field">
+                    <button type="button" onclick="processURL()">Analyze Link</button>
+                </div>
+
+                <div id="resultCard" class="result-card" aria-live="polite">
+                    <div class="result-info">
+                        <strong id="resultTitle"></strong>
+                        <small id="resultDomain"></small>
+                    </div>
+                    <ul id="analysisList" class="result-points"></ul>
+                </div>
+
+                <p class="note">This tool runs entirely in the browser and works on any device, even mobile phones. It checks suspicious patterns without sending your input anywhere.</p>
+            </div>
+
+            <div class="card">
+                <h2>Why this matters</h2>
+                <p class="note">Phishing attacks often use misleading domains, urgent words, insecure connections, and hidden redirects to trick you. This website helps you identify those risks before you click.</p>
+                <ul>
+                    <li>Find fake domains and impersonation attempts.</li>
+                    <li>Spot insecure HTTP links and IP-based URLs.</li>
+                    <li>Learn how cybercriminals hide malicious pages.</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="detail-grid">
+            <article>
+                <h3>How PhishGuard assesses risk</h3>
+                <p>Each URL is scored using a set of safety checks. The tool flags suspicious domains, unusual characters, weak protocols, and phishing-themed words.</p>
+                <ul>
+                    <li>Checks for hidden username sections using <code>@</code>.</li>
+                    <li>Detects non-secure <code>http://</code> links.</li>
+                    <li>Flags direct IP addresses instead of real domains.</li>
+                    <li>Looks for dangerous top-level domains like <code>.xyz</code> and <code>.top</code>.</li>
+                </ul>
+            </article>
+
+            <article>
+                <h3>Common phishing indicators</h3>
+                <ul>
+                    <li>Many subdomains or extra hyphens in the address.</li>
+                    <li>Brand names used in a suspicious domain structure.</li>
+                    <li>Urgent terms such as <strong>login</strong>, <strong>verify</strong>, or <strong>account</strong>.</li>
+                    <li>Unexpected file downloads on login pages.</li>
+                </ul>
+            </article>
+
+            <article>
+                <h3>Protect yourself</h3>
+                <ul>
+                    <li>Always inspect the full URL before entering credentials.</li>
+                    <li>Use two-factor authentication when available.</li>
+                    <li>Do not trust links from unknown sources.</li>
+                    <li>Bookmark frequently visited login pages.</li>
+                </ul>
+            </article>
+
+            <article>
+                <h3>Sample suspicious links</h3>
+                <ul>
+                    <li><code>http://google.com@secure-login.xyz</code></li>
+                    <li><code>https://paypa1-login.top</code></li>
+                    <li><code>http://192.168.0.1/verify-account</code></li>
+                    <li><code>https://online-bank-secure.xyz</code></li>
+                </ul>
+            </article>
+        </div>
+
+        <footer>
+            Built as a self-contained phishing detector and educational website. Open <strong>project.html</strong> in any browser to use it.
+        </footer>
+    </div>
+
+    <script>
+        function processURL() {
+            const input = document.getElementById('urlInputField');
+            const rawInput = input.value.trim();
+            const resultCard = document.getElementById('resultCard');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDomain = document.getElementById('resultDomain');
+            const analysisList = document.getElementById('analysisList');
+
+            analysisList.innerHTML = '';
+            resultCard.style.display = 'none';
+            resultCard.className = 'result-card';
+
+            if (!rawInput) {
+                alert('Please paste a URL to analyze.');
+                return;
+            }
+
+            let candidate = rawInput;
+            if (!/^https?:\/\//i.test(candidate)) {
+                candidate = 'http://' + candidate;
+            }
+
+            try {
+                const parsedUrl = new URL(candidate);
+                const host = parsedUrl.hostname.toLowerCase();
+                const protocol = parsedUrl.protocol.toLowerCase();
+                let threatScore = 0;
+                const logs = [];
+
+                if (parsedUrl.username || candidate.includes('@')) {
+                    threatScore += 5;
+                    logs.push('CRITICAL: This URL contains an @ symbol or username section, which can hide the real destination.');
+                }
+
+                if (protocol === 'http:') {
+                    threatScore += 2;
+                    logs.push('WARNING: The link uses http:// instead of https://, meaning the page is not encrypted.');
+                }
+
+                const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+                if (ipPattern.test(host)) {
+                    threatScore += 4;
+                    logs.push('HIGH RISK: The address points directly to an IP instead of a normal website name.');
+                }
+
+                const dotCount = (host.match(/\./g) || []).length;
+                if (dotCount > 3) {
+                    threatScore += 2;
+                    logs.push('Suspicious structure: too many domain segments may hide the actual site.');
+                }
+
+                const dangerousTLDs = ['.xyz', '.top', '.buzz', '.club', '.tk', '.ml', '.ga', '.cf', '.gq', '.link', '.work', '.date', '.icu', '.info'];
+                dangerousTLDs.forEach(tld => {
+                    if (host.endsWith(tld)) {
+                        threatScore += 3;
+                        logs.push('Suspicious domain extension: ' + tld + ' is commonly used for phishing pages.');
+                    }
+                });
+
+                const phishKeywords = ['login', 'verify', 'secure', 'update', 'banking', 'wallet', 'signin', 'account', 'kyc'];
+                const foundKeywords = phishKeywords.filter(keyword => candidate.toLowerCase().includes(keyword));
+                if (foundKeywords.length) {
+                    threatScore += 1.5;
+                    logs.push('Found phishing-style words: ' + foundKeywords.join(', ') + '.');
+                }
+
+                const knownBrands = ['paypal', 'google', 'microsoft', 'apple', 'amazon', 'netflix', 'facebook', 'instagram', 'sbi', 'hdfc', 'icici'];
+                knownBrands.forEach(brand => {
+                    if (host.includes(brand)) {
+                        const officialPatterns = [
+                            brand + '.com',
+                            brand + '.co.in',
+                            brand + '.in',
+                            'www.' + brand + '.com',
+                            'accounts.' + brand + '.com'
+                        ];
+                        const isOfficial = officialPatterns.some(pattern => host === pattern || host.endsWith('.' + pattern));
+                        if (!isOfficial) {
+                            threatScore += 5;
+                            logs.push('CRITICAL: The URL mentions ' + brand + ' but does not appear to be an official site for that brand.');
+                        }
+                    }
+                });
+
+                if ((host.match(/-/g) || []).length > 2) {
+                    threatScore += 1.5;
+                    logs.push('Suspicious hyphenation: many dashes usually mean a fake domain copy.');
+                }
+
+                if (!logs.length) {
+                    logs.push('No strong phishing patterns were detected, but always verify the sender and the page content.');
+                }
+
+                resultDomain.textContent = 'Domain: ' + host;
+                resultCard.style.display = 'block';
+
+                if (threatScore >= 4.5) {
+                    resultCard.classList.add('status-danger');
+                    resultTitle.textContent = '❌ High Risk: Dangerous Link Detected';
+                } else if (threatScore >= 1.5) {
+                    resultCard.classList.add('status-warning');
+                    resultTitle.textContent = '⚠️ Suspicious Link: Use Caution';
+                } else {
+                    resultCard.classList.add('status-safe');
+                    resultTitle.textContent = '✅ Low Risk: No Major Issues Found';
+                }
+
+                logs.forEach(entry => {
+                    const li = document.createElement('li');
+                    li.textContent = entry;
+                    analysisList.appendChild(li);
+                });
+
+            } catch (error) {
+                alert('The URL appears invalid. Please enter a complete web address.');
+                resultCard.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
